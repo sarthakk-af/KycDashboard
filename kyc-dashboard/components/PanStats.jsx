@@ -7,7 +7,7 @@ const CHART_COLORS = ["#005B66", "#0D3B66", "#2EA3B7", "#FF6B6B"];
 const LABELS = ["No Of PANs Solicited", "Received", "Consumed", "Pending"];
 
 const StatRow = ({ icon, label, value }) => (
-  <div className="flex items-center gap-2 text-sm">
+  <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
     {icon}
     {label}
     <span className="ml-auto font-semibold">{value}</span>
@@ -77,7 +77,7 @@ export default function PanStats() {
   ]);
 
   return (
-    <div className="bg-white rounded-xl shadow p-4">
+    <div className="bg-white dark:bg-neutral-800 rounded-xl shadow p-4 transition-colors duration-300">
       <div className="flex items-center justify-between mb-4">
         {/* Left tabs */}
         <div className="flex gap-4">
@@ -85,25 +85,27 @@ export default function PanStats() {
             <button
               key={t}
               onClick={() => setSolicitedType(t)}
-              className={`pb-1 border-b-2 text-sm ${
+              className={`pb-1 border-b-2 text-sm transition-colors ${
                 solicitedType === t
-                  ? "border-black font-semibold"
-                  : "border-transparent text-gray-500"
+                  ? "border-black dark:border-white font-semibold text-gray-900 dark:text-gray-100"
+                  : "border-transparent text-gray-500 dark:text-gray-400"
               }`}
             >
               {t}
             </button>
           ))}
         </div>
-        {/* Right pills */}
 
-        <div className="flex bg-gray-100 rounded-full p-1">
+        {/* Right pills */}
+        <div className="flex bg-gray-100 dark:bg-neutral-700 rounded-full p-1">
           {["Individual", "Non Individual"].map((t) => (
             <button
               key={t}
               onClick={() => setPersonType(t)}
               className={`px-3 py-1 rounded-full text-sm font-medium transition ${
-                personType === t ? "bg-white shadow-sm" : ""
+                personType === t
+                  ? "bg-white dark:bg-neutral-600 shadow-sm text-gray-900 dark:text-gray-100"
+                  : "text-gray-600 dark:text-gray-300"
               }`}
             >
               {t}
@@ -131,7 +133,7 @@ export default function PanStats() {
                       key={i}
                       fill={
                         entry.name === "Remaining"
-                          ? "#F3F4F6"
+                          ? "#E5E7EB" // light gray
                           : CHART_COLORS[idx]
                       }
                     />
@@ -142,15 +144,22 @@ export default function PanStats() {
           </ResponsiveContainer>
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="text-center">
-              <div className="text-xs opacity-70">Total</div>
-              <div className="text-2xl font-bold">{total.toLocaleString()}</div>
+              <div className="text-xs opacity-70 text-gray-600 dark:text-gray-400">
+                Total
+              </div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                {total.toLocaleString()}
+              </div>
             </div>
           </div>
         </div>
 
         <div className="space-y-4">
           {LABELS.map((label, idx) => (
-            <div key={idx} className="flex items-center gap-3">
+            <div
+              key={idx}
+              className="flex items-center gap-3 text-gray-800 dark:text-gray-200"
+            >
               <div
                 className="w-4 h-4 rounded-full"
                 style={{ backgroundColor: CHART_COLORS[idx] }}
@@ -161,9 +170,10 @@ export default function PanStats() {
         </div>
       </div>
 
-      <div className="mt-6 divide-y">
+      <div className="mt-6 divide-y divide-gray-200 dark:divide-gray-700">
+        {/* PANs Solicited */}
         <div className="py-4">
-          <div className="flex items-center justify-between font-medium">
+          <div className="flex items-center justify-between font-medium text-gray-900 dark:text-gray-100">
             No. of PANs Solicited
             <span className="text-lg font-bold">
               {(
@@ -191,8 +201,9 @@ export default function PanStats() {
           </div>
         </div>
 
+        {/* Data Received */}
         <div className="py-4">
-          <div className="flex items-center justify-between font-medium">
+          <div className="flex items-center justify-between font-medium text-gray-900 dark:text-gray-100">
             Data Received
             <span className="text-lg font-bold">
               {(
