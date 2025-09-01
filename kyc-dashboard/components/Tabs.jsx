@@ -5,7 +5,20 @@ export default function HeaderTabs({
   setRange,
   customFrom,
   setCustomFrom,
+  customTo,
+  setCustomTo,
 }) {
+  // --- DATE CONSTRAINT LOGIC ---
+  // Get today's date to prevent selecting future dates.
+  const today = new Date();
+  
+  // Format today's date into "YYYY-MM-DD" format for the input's `max` attribute.
+  const maxDate = today.toISOString().split("T")[0];
+
+  // Set the earliest selectable date to January 1st of the current year.
+  const minDate = new Date(today.getFullYear(), 0, 1).toISOString().split("T")[0];
+  // --- END OF LOGIC ---
+
   return (
     <div className="flex items-start justify-between w-full mb-6">
       {/* Title */}
@@ -57,15 +70,30 @@ export default function HeaderTabs({
           </button>
         </div>
 
-        {/* Date Picker */}
-        <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900">
-          <input
-            type="date"
-            value={customFrom}
-            onChange={(e) => setCustomFrom(e.target.value)}
-            className="outline-none bg-transparent text-gray-700 dark:text-gray-300"
-          />
-        </div>
+        {/* Conditionally render date pickers */}
+        {range === "custom" && (
+          <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900">
+            <input
+              type="date"
+              value={customFrom}
+              onChange={(e) => setCustomFrom(e.target.value)}
+              className="outline-none bg-transparent text-gray-700 dark:text-gray-300"
+              aria-label="From Date"
+              min={minDate} // Set the minimum selectable date
+              max={maxDate} // Set the maximum selectable date
+            />
+            <span className="text-gray-400">-</span>
+            <input
+              type="date"
+              value={customTo}
+              onChange={(e) => setCustomTo(e.target.value)}
+              className="outline-none bg-transparent text-gray-700 dark:text-gray-300"
+              aria-label="To Date"
+              min={minDate} // Set the minimum selectable date
+              max={maxDate} // Set the maximum selectable date
+            />
+          </div>
+        )}
       </div>
     </div>
   );

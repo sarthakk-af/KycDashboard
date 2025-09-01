@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useTheme } from "next-themes"; // <-- IMPORT THE THEME HOOK
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { Image, ImageOff } from "lucide-react";
 
@@ -14,62 +14,16 @@ const StatRow = ({ icon, label, value }) => (
   </div>
 );
 
-export default function PanStats() {
-  // Dummy data for all combinations
-  const [view, setView] = useState("individual");
-
-  const data = {
-    solicited: {
-      individual: {
-        totalKycs: 1200,
-        donut: { solicited: 500, received: 400, consumed: 300, pending: 200 },
-        panData: {
-          panSolicited: { kfinKRA: 200, withImage: 150, withoutImage: 50 },
-          dataReceived: { kfinKRA: 180, withImage: 140, withoutImage: 40 },
-        },
-      },
-      "non individual": {
-        totalKycs: 900,
-        donut: { solicited: 300, received: 250, consumed: 200, pending: 150 },
-        panData: {
-          panSolicited: { kfinKRA: 120, withImage: 80, withoutImage: 40 },
-          dataReceived: { kfinKRA: 100, withImage: 70, withoutImage: 30 },
-        },
-      },
-    },
-    unsolicited: {
-      individual: {
-        totalKycs: 800,
-        donut: { solicited: 200, received: 150, consumed: 100, pending: 50 },
-        panData: {
-          panSolicited: { kfinKRA: 90, withImage: 60, withoutImage: 30 },
-          dataReceived: { kfinKRA: 80, withImage: 55, withoutImage: 25 },
-        },
-      },
-      "non individual": {
-        totalKycs: 600,
-        donut: { solicited: 150, received: 120, consumed: 90, pending: 60 },
-        panData: {
-          panSolicited: { kfinKRA: 70, withImage: 50, withoutImage: 20 },
-          dataReceived: { kfinKRA: 65, withImage: 45, withoutImage: 20 },
-        },
-      },
-    },
-  };
-
-  const [solicitedType, setSolicitedType] = useState("Solicited");
-  const [personType, setPersonType] = useState("Individual");
-
-  const activeData =
-    data[solicitedType.toLowerCase()][personType.toLowerCase()] || {};
+export default function PanStats({ panData, donutData, totalKycs, solicitedType, setSolicitedType, personType, setPersonType }) {
+  const { theme } = useTheme(); // <-- GET THE CURRENT THEME
 
   const chartValues = [
-    activeData?.donut?.solicited || 0,
-    activeData?.donut?.received || 0,
-    activeData?.donut?.consumed || 0,
-    activeData?.donut?.pending || 0,
+    donutData?.solicited || 0,
+    donutData?.received || 0,
+    donutData?.consumed || 0,
+    donutData?.pending || 0,
   ];
-  const total = activeData?.totalKycs || 0;
+  const total = totalKycs || 0;
 
   const chartData = chartValues.map((val, i) => [
     { name: LABELS[i], value: val },
@@ -78,14 +32,15 @@ export default function PanStats() {
 
   return (
     <div className="bg-white dark:bg-neutral-800 rounded-xl shadow p-4 transition-colors duration-300">
-      <div className="flex items-center justify-between mb-4">
+      {/* Header with responsive layout */}
+      <div className="flex flex-col sm:flex-row items-center justify-between mb-4 gap-4">
         {/* Left tabs */}
         <div className="flex gap-4">
-          {["Solicited", "Unsolicited"].map((t) => (
+          {["solicited", "unsolicited"].map((t) => (
             <button
               key={t}
               onClick={() => setSolicitedType(t)}
-              className={`pb-1 border-b-2 text-sm transition-colors ${
+              className={`pb-1 border-b-2 text-sm transition-colors capitalize ${
                 solicitedType === t
                   ? "border-black dark:border-white font-semibold text-gray-900 dark:text-gray-100"
                   : "border-transparent text-gray-500 dark:text-gray-400"
@@ -98,24 +53,25 @@ export default function PanStats() {
 
         {/* Right pills */}
         <div className="flex bg-gray-100 dark:bg-neutral-700 rounded-full p-1">
-          {["Individual", "Non Individual"].map((t) => (
+          {["individual", "non-individual"].map((t) => (
             <button
               key={t}
               onClick={() => setPersonType(t)}
-              className={`px-3 py-1 rounded-full text-sm font-medium transition ${
+              className={`px-3 py-1 rounded-full text-sm font-medium transition capitalize ${
                 personType === t
                   ? "bg-white dark:bg-neutral-600 shadow-sm text-gray-900 dark:text-gray-100"
                   : "text-gray-600 dark:text-gray-300"
               }`}
             >
-              {t}
+              {t.replace('-', ' ')}
             </button>
           ))}
         </div>
       </div>
 
+      {/* Chart and Legend with responsive layout */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-        <div className="relative h-64">
+        <div className="relative h-60 md:h-64">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               {chartData.map((ring, idx) => (
@@ -123,19 +79,22 @@ export default function PanStats() {
                   key={idx}
                   data={ring}
                   dataKey="value"
-                  innerRadius={70 + idx * 15}
-                  outerRadius={80 + idx * 15}
+                  innerRadius={50 + idx * 18}
+                  outerRadius={65 + idx * 18}
                   startAngle={90}
                   endAngle={-270}
+                  paddingAngle={2}
                 >
                   {ring.map((entry, i) => (
                     <Cell
-                      key={i}
+                      key={`cell-${i}`}
                       fill={
                         entry.name === "Remaining"
-                          ? "#E5E7EB" // light gray
+                          ? "#E5E7EB"
                           : CHART_COLORS[idx]
                       }
+                      stroke={theme === 'dark' ? '#171717' : '#fff'}
+                      strokeWidth={2}
                     />
                   ))}
                 </Pie>
@@ -165,68 +124,69 @@ export default function PanStats() {
                 style={{ backgroundColor: CHART_COLORS[idx] }}
               ></div>
               <span>{label}</span>
+              <span className="ml-auto font-semibold">{chartValues[idx].toLocaleString()}</span>
             </div>
           ))}
         </div>
       </div>
 
       <div className="mt-6 divide-y divide-gray-200 dark:divide-gray-700">
-        {/* PANs Solicited */}
+        {/* PANs Solicited - Responsive grid */}
         <div className="py-4">
           <div className="flex items-center justify-between font-medium text-gray-900 dark:text-gray-100">
             No. of PANs Solicited
             <span className="text-lg font-bold">
               {(
-                (activeData?.panData?.panSolicited?.withImage || 0) +
-                (activeData?.panData?.panSolicited?.withoutImage || 0)
+                (panData?.panSolicited?.withImage || 0) +
+                (panData?.panSolicited?.withoutImage || 0)
               ).toLocaleString()}
             </span>
           </div>
-          <div className="mt-2 grid grid-cols-2 gap-3 text-sm">
+          <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
             <StatRow
               icon={<span className="text-xs font-bold">📄</span>}
               label="KFin KRA"
-              value={activeData?.panData?.panSolicited?.kfinKRA || 0}
+              value={panData?.panSolicited?.kfinKRA || 0}
             />
             <StatRow
               icon={<Image size={16} />}
               label="With Image"
-              value={activeData?.panData?.panSolicited?.withImage || 0}
+              value={panData?.panSolicited?.withImage || 0}
             />
             <StatRow
               icon={<ImageOff size={16} />}
               label="Without Image"
-              value={activeData?.panData?.panSolicited?.withoutImage || 0}
+              value={panData?.panSolicited?.withoutImage || 0}
             />
           </div>
         </div>
 
-        {/* Data Received */}
+        {/* Data Received - Responsive grid */}
         <div className="py-4">
           <div className="flex items-center justify-between font-medium text-gray-900 dark:text-gray-100">
             Data Received
             <span className="text-lg font-bold">
               {(
-                (activeData?.panData?.dataReceived?.withImage || 0) +
-                (activeData?.panData?.dataReceived?.withoutImage || 0)
+                (panData?.dataReceived?.withImage || 0) +
+                (panData?.dataReceived?.withoutImage || 0)
               ).toLocaleString()}
             </span>
           </div>
-          <div className="mt-2 grid grid-cols-2 gap-3 text-sm">
+          <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
             <StatRow
               icon={<span className="text-xs font-bold">📄</span>}
               label="KFin KRA"
-              value={activeData?.panData?.dataReceived?.kfinKRA || 0}
+              value={panData?.dataReceived?.kfinKRA || 0}
             />
             <StatRow
               icon={<Image size={16} />}
               label="With Image"
-              value={activeData?.panData?.dataReceived?.withImage || 0}
+              value={panData?.dataReceived?.withImage || 0}
             />
             <StatRow
               icon={<ImageOff size={16} />}
               label="Without Image"
-              value={activeData?.panData?.dataReceived?.withoutImage || 0}
+              value={panData?.dataReceived?.withoutImage || 0}
             />
           </div>
         </div>
@@ -234,3 +194,4 @@ export default function PanStats() {
     </div>
   );
 }
+

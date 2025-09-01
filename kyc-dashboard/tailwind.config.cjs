@@ -6,7 +6,13 @@ module.exports = {
     extend: {
       colors: {
         brand: "#2563eb",
-        muted: "#f3f4f6"
+        muted: "#f3f4f6",
+        // --- NEW COLORS START ---
+        'chart-solicited': '#005B66', // Dark Teal
+        'chart-received': '#0D3B66',  // Dark Blue
+        'chart-consumed': '#2EA3B7',  // Light Teal
+        'chart-pending': '#F75B5B',   // Red
+        // --- NEW COLORS END ---
       },
       boxShadow: {
         soft: "0 10px 20px rgba(0,0,0,0.06)",

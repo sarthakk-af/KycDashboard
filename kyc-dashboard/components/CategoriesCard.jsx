@@ -1,45 +1,48 @@
-import { useState } from "react";
+export default function CategoriesCard({ categories, view, setView }) {
+  const data = view === 'individual' ? categories.individual : categories.nonIndividual;
 
-export default function CategoriesCard() {
-  const [view, setView] = useState("individual");
+  const Bar = ({ value, color, secondaryColor }) => (
+    <div className="h-2 w-full bg-gray-200 dark:bg-neutral-700 rounded-full">
+        <div className="flex h-full">
+            <div
+                className={`${color} h-full rounded-l-full`}
+                style={{ width: `${value}%` }}
+            />
+            <div
+                className={`${secondaryColor} h-full rounded-r-full`}
+                style={{ width: `${100-value}%` }}
+            />
+        </div>
+    </div>
+  );
 
-  // Sample data
-  const dummyData = {
-    individual: {
-      RI: { solicited: 90, unsolicited: 75 },
-      NRI: { solicited: 55, unsolicited: 45 },
-    },
-    nonIndividual: {
-      RI: { solicited: 65, unsolicited: 50 },
-      NRI: { solicited: 40, unsolicited: 30 },
-    },
-  };
-
-  const data = dummyData[view];
-
-  const Bar = ({ value, color }) => (
-    <div className="h-1.5 w-full bg-blue-50 dark:bg-neutral-700 rounded-full overflow-hidden">
-      <div
-        className={`${color} h-full rounded-full`}
-        style={{ width: `${value}%` }}
-      />
+   const BarRow = ({ title, data }) => (
+    <div>
+        <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">{title}</div>
+        <div className="space-y-3">
+            <div className="flex items-center gap-2">
+                <Bar value={data.RI} color="bg-blue-600" secondaryColor="bg-sky-100" />
+            </div>
+             <div className="flex items-center gap-2">
+                <Bar value={data.NRI} color="bg-sky-500" secondaryColor="bg-sky-100" />
+            </div>
+        </div>
     </div>
   );
 
   return (
-    <div className="bg-white dark:bg-neutral-800 p-5 rounded-2xl shadow-sm transition-colors duration-300">
-      {/* Header */}
+    <div className="bg-white dark:bg-neutral-900 p-6 rounded-2xl shadow-card transition-colors duration-300">
       <div className="flex items-center justify-between mb-6">
         <div className="font-semibold text-lg text-gray-900 dark:text-gray-100">
           Categories
         </div>
-        <div className="flex bg-gray-100 dark:bg-neutral-700 rounded-full p-1">
+        <div className="flex bg-gray-100 dark:bg-neutral-800 rounded-full p-1">
           <button
             onClick={() => setView("individual")}
             className={`px-3 py-1 rounded-full text-sm font-medium transition ${
               view === "individual"
-                ? "bg-white dark:bg-neutral-600 shadow-sm"
-                : ""
+                ? "bg-white dark:bg-neutral-700 shadow-sm"
+                : "text-gray-500 dark:text-gray-400"
             }`}
           >
             Individual
@@ -48,31 +51,18 @@ export default function CategoriesCard() {
             onClick={() => setView("nonIndividual")}
             className={`px-3 py-1 rounded-full text-sm font-medium transition ${
               view === "nonIndividual"
-                ? "bg-white dark:bg-neutral-600 shadow-sm"
-                : ""
+                ? "bg-white dark:bg-neutral-700 shadow-sm"
+                : "text-gray-500 dark:text-gray-400"
             }`}
           >
             Non Individual
           </button>
         </div>
       </div>
-
-      {/* RI */}
-      <div className="mb-6">
-        <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">RI</div>
-        <div className="space-y-2">
-          <Bar value={data.RI.solicited} color="bg-blue-800" />
-          <Bar value={data.RI.unsolicited} color="bg-blue-400" />
-        </div>
-      </div>
-
-      {/* NRI */}
-      <div>
-        <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">NRI</div>
-        <div className="space-y-2">
-          <Bar value={data.NRI.solicited} color="bg-blue-800" />
-          <Bar value={data.NRI.unsolicited} color="bg-blue-400" />
-        </div>
+      
+      <div className="space-y-6">
+        <BarRow title="RI" data={data}/>
+        <BarRow title="NRI" data={data}/>
       </div>
     </div>
   );

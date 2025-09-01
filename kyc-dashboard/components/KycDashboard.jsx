@@ -13,8 +13,6 @@ import {
   FileWarning,
   BarChart3,
   List,
-  Sun,
-  Moon,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -26,76 +24,13 @@ import {
   CartesianGrid,
 } from "recharts";
 
-export default function KycDashboard() {
-  const { theme, setTheme } = useTheme();
-
-  // ------------------ Mock Data ------------------
-  const kpiData = {
-    total: 3456,
-    newKyc: { count: 3000, changePct: 12, breakup: { myKRA: 400, interop: 0 } },
-    modifiedKyc: {
-      count: 456,
-      changePct: -10,
-      breakup: { myKRA: 400, interop: 56 },
-    },
-  };
-
-  const chartData = {
-    individual: [
-      { name: "Individual", today: 360, yesterday: 300 },
-      { name: "Non Individual", today: 300, yesterday: 250 },
-    ],
-    nonIndividual: [
-      { name: "Individual", today: 200, yesterday: 180 },
-      { name: "Non Individual", today: 150, yesterday: 100 },
-    ],
-  };
-
-  const statusData = {
-    today: {
-      individual: [
-        { label: "KYC Initiated", count: 234 },
-        { label: "Under Process", count: 45 },
-        { label: "Registered", count: 350 },
-        { label: "Validated", count: 654 },
-        { label: "Hold", count: 269 },
-        { label: "Docs Pending", count: 100 },
-      ],
-      nonIndividual: [
-        { label: "KYC Initiated", count: 150 },
-        { label: "Under Process", count: 30 },
-        { label: "Registered", count: 200 },
-        { label: "Validated", count: 300 },
-        { label: "Hold", count: 100 },
-        { label: "Docs Pending", count: 50 },
-      ],
-    },
-    yesterday: {
-      individual: [
-        { label: "KYC Initiated", count: 200 },
-        { label: "Under Process", count: 40 },
-        { label: "Registered", count: 300 },
-        { label: "Validated", count: 600 },
-        { label: "Hold", count: 250 },
-        { label: "Docs Pending", count: 90 },
-      ],
-      nonIndividual: [
-        { label: "KYC Initiated", count: 100 },
-        { label: "Under Process", count: 25 },
-        { label: "Registered", count: 150 },
-        { label: "Validated", count: 250 },
-        { label: "Hold", count: 80 },
-        { label: "Docs Pending", count: 40 },
-      ],
-    },
-  };
-
-  // ------------------ State ------------------
-  const [timeFilter, setTimeFilter] = useState("today");
-  const [typeFilter, setTypeFilter] = useState("individual");
+export default function KycDashboard({ data, view, setView }) {
+  const { theme } = useTheme();
   const [viewMode, setViewMode] = useState("chart");
+  const [timeFilter, setTimeFilter] = useState("today");
 
-  // ------------------ Components ------------------
+  const { totalKycs, kpi, bar, statuses } = data;
+
   const Badge = ({ positive, value }) => (
     <span
       className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full font-medium ${
@@ -145,13 +80,13 @@ export default function KycDashboard() {
   };
 
   const StatusCards = ({ items }) => (
-    <div className="bg-[#F6F7F8] dark:bg-neutral-800 rounded-[20px] p-4 flex justify-between">
+    <div className="bg-[#F6F7F8] dark:bg-neutral-800 rounded-[20px] p-4 grid grid-cols-2 sm:grid-cols-3 lg:flex lg:justify-between gap-4">
       {items.map((it) => {
         const { icon: Icon, color } = ICONS[it.label] || {};
         return (
           <div key={it.label} className="flex flex-col items-center flex-1">
             <Icon size={22} style={{ color }} />
-            <span className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+            <span className="text-xs text-center text-gray-500 dark:text-gray-400 mt-2">
               {it.label}
             </span>
             <span className="text-xl font-semibold mt-1">{it.count}</span>
@@ -162,7 +97,7 @@ export default function KycDashboard() {
   );
 
   const BarComparison = ({ data }) => (
-    <div className="rounded-[20px] border border-[#E7E7E7] dark:border-neutral-700 bg-white dark:bg-neutral-800 shadow-md p-6">
+     <div className="rounded-[20px] border border-[#E7E7E7] dark:border-neutral-700 bg-white dark:bg-neutral-800 shadow-md p-6">
       <div className="flex justify-between items-center mb-6">
         <div className="flex flex-1 justify-center gap-6 text-sm">
           <div className="flex items-center gap-2">
@@ -196,36 +131,39 @@ export default function KycDashboard() {
       </div>
 
       {viewMode === "chart" ? (
-        <div className="h-[380px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} barGap={0}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip cursor={{ fill: "rgba(0,0,0,0.05)" }} />
-              <Bar
-                dataKey="today"
-                fill="#2F63F6"
-                radius={[4, 4, 0, 0]}
-                barSize={50}
-              />
-              <Bar
-                dataKey="yesterday"
-                fill="#8CB4FF"
-                radius={[4, 4, 0, 0]}
-                barSize={50}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+        // --- MODIFICATION START ---
+        // Removed the fixed-height wrapper div and applied a height directly to the ResponsiveContainer
+        <ResponsiveContainer width="100%" height={350}>
+          <BarChart data={data} barGap={0}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <XAxis dataKey="name" />
+            <YAxis />
+            <Tooltip cursor={{ fill: "rgba(0,0,0,0.05)" }} />
+            <Bar
+              dataKey="individual"
+              fill="#2F63F6"
+              radius={[4, 4, 0, 0]}
+              barSize={50}
+              name="Individual"
+            />
+            <Bar
+              dataKey="nonIndividual"
+              fill="#8CB4FF"
+              radius={[4, 4, 0, 0]}
+              barSize={50}
+              name="Non Individual"
+            />
+          </BarChart>
+        </ResponsiveContainer>
+        // --- MODIFICATION END ---
       ) : (
         <div className="divide-y text-sm">
           {data.map((row) => (
             <div key={row.name} className="flex justify-between py-3">
               <span>{row.name}</span>
-              <span className="font-semibold text-[#2F63F6]">{row.today}</span>
+              <span className="font-semibold text-[#2F63F6]">{row.individual}</span>
               <span className="font-semibold text-[#8CB4FF]">
-                {row.yesterday}
+                {row.nonIndividual}
               </span>
             </div>
           ))}
@@ -234,103 +172,88 @@ export default function KycDashboard() {
     </div>
   );
 
-  // ------------------ Main Render ------------------
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-neutral-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
-      {/* Header with Theme Toggle */}
-      <header className="flex items-center justify-between p-4 border-b border-gray-300 dark:border-neutral-700">
-        <h1 className="text-xl font-bold">KYC Dashboard</h1>
-      </header>
-
-      {/* Dashboard Content */}
-      <main className="p-6 space-y-8 font-['Inter',sans-serif]">
-        <div className="rounded-[20px] border border-[#E7E7E7] dark:border-neutral-700 bg-white dark:bg-neutral-800 shadow-md p-6 space-y-8">
-          {/* KPIs */}
-          <div>
-            <div className="text-sm text-gray-600 dark:text-gray-300">
-              Total KYCs
-            </div>
-            <div className="text-4xl font-bold mt-1">
-              {kpiData.total.toLocaleString()}
-            </div>
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <KpiMini
-                title="New KYC"
-                count={kpiData.newKyc.count}
-                change={kpiData.newKyc.changePct}
-                positive={true}
-                breakup={kpiData.newKyc.breakup}
-                Icon={CheckCircle2}
-              />
-              <KpiMini
-                title="Modified KYC"
-                count={kpiData.modifiedKyc.count}
-                change={kpiData.modifiedKyc.changePct}
-                positive={false}
-                breakup={kpiData.modifiedKyc.breakup}
-                Icon={RefreshCcw}
-              />
-            </div>
-          </div>
-
-          {/* Chart / List Comparison */}
-          <BarComparison data={chartData[typeFilter]} />
-
-          {/* Filters */}
-          <div className="flex justify-between items-center">
-            {/* Time Filter */}
-            <div className="bg-gray-100 dark:bg-neutral-700 rounded-full p-1 flex">
-              <button
-                onClick={() => setTimeFilter("today")}
-                className={`px-4 py-2 rounded-full text-sm font-medium capitalize transition ${
-                  timeFilter === "today"
-                    ? "bg-white dark:bg-neutral-900 shadow-sm"
-                    : ""
-                }`}
-              >
-                Today
-              </button>
-              <button
-                onClick={() => setTimeFilter("yesterday")}
-                className={`px-4 py-2 rounded-full text-sm font-medium capitalize transition ${
-                  timeFilter === "yesterday"
-                    ? "bg-white dark:bg-neutral-900 shadow-sm"
-                    : ""
-                }`}
-              >
-                Yesterday
-              </button>
-            </div>
-
-            {/* Type Filter */}
-            <div className="flex bg-gray-100 dark:bg-neutral-700 rounded-full p-1">
-              <button
-                onClick={() => setTypeFilter("individual")}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition ${
-                  typeFilter === "individual"
-                    ? "bg-white dark:bg-neutral-900 shadow-sm"
-                    : ""
-                }`}
-              >
-                Individual
-              </button>
-              <button
-                onClick={() => setTypeFilter("nonIndividual")}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition ${
-                  typeFilter === "nonIndividual"
-                    ? "bg-white dark:bg-neutral-900 shadow-sm"
-                    : ""
-                }`}
-              >
-                Non Individual
-              </button>
-            </div>
-          </div>
-
-          {/* Status Cards */}
-          <StatusCards items={statusData[timeFilter][typeFilter]} />
+    <div className="space-y-8">
+      {/* KPIs */}
+      <div>
+        <div className="text-sm text-gray-600 dark:text-gray-300">
+          Total KYCs
         </div>
-      </main>
+        <div className="text-4xl font-bold mt-1">
+          {totalKycs.toLocaleString()}
+        </div>
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <KpiMini
+            title="New KYC"
+            count={kpi.newKyc.count}
+            change={kpi.newKyc.changePct}
+            positive={kpi.newKyc.changePct >= 0}
+            breakup={kpi.newKyc.breakup}
+            Icon={CheckCircle2}
+          />
+          <KpiMini
+            title="Modified KYC"
+            count={kpi.modifiedKyc.count}
+            change={kpi.modifiedKyc.changePct}
+            positive={kpi.modifiedKyc.changePct >= 0}
+            breakup={kpi.modifiedKyc.breakup}
+            Icon={RefreshCcw}
+          />
+        </div>
+      </div>
+
+      <BarComparison data={bar} />
+
+      {/* Responsive Filters */}
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div className="bg-gray-100 dark:bg-neutral-700 rounded-full p-1 flex">
+          <button
+            onClick={() => setTimeFilter("today")}
+            className={`px-4 py-2 rounded-full text-sm font-medium capitalize transition ${
+              timeFilter === "today"
+                ? "bg-white dark:bg-neutral-900 shadow-sm"
+                : ""
+            }`}
+          >
+            Today
+          </button>
+          <button
+            onClick={() => setTimeFilter("yesterday")}
+            className={`px-4 py-2 rounded-full text-sm font-medium capitalize transition ${
+              timeFilter === "yesterday"
+                ? "bg-white dark:bg-neutral-900 shadow-sm"
+                : ""
+            }`}
+          >
+            Yesterday
+          </button>
+        </div>
+
+        <div className="flex bg-gray-100 dark:bg-neutral-700 rounded-full p-1">
+          <button
+            onClick={() => setView("individual")}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition ${
+              view === "individual"
+                ? "bg-white dark:bg-neutral-900 shadow-sm"
+                : ""
+            }`}
+          >
+            Individual
+          </button>
+          <button
+            onClick={() => setView("non-individual")}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition ${
+              view === "non-individual"
+                ? "bg-white dark:bg-neutral-900 shadow-sm"
+                : ""
+            }`}
+          >
+            Non Individual
+          </button>
+        </div>
+      </div>
+
+      <StatusCards items={statuses} />
     </div>
   );
 }

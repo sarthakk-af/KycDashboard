@@ -1,12 +1,10 @@
 "use client";
-import { Search, Bell, Moon, Sun, FileDown, ChevronDown } from "lucide-react";
+import { Search, Bell, Moon, Sun, FileDown, ChevronDown, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 
-export default function Topbar() {
-  // A simple state for theme toggling in a client component environment
+export default function Topbar({ onGeneratePdf, isPdfLoading, loading }) {
   const [theme, setTheme] = useState("light");
 
-  // Effect to apply the theme class to the document root
   useEffect(() => {
     if (theme === "dark") {
       document.documentElement.classList.add("dark");
@@ -14,11 +12,6 @@ export default function Topbar() {
       document.documentElement.classList.remove("dark");
     }
   }, [theme]);
-
-  const handleGeneratePdf = () => {
-    console.log("PDF generation initiated!");
-    // Your PDF generation logic would go here
-  };
 
   return (
     <header className="sticky top-0 z-20 w-full bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800">
@@ -29,7 +22,7 @@ export default function Topbar() {
         </div>
 
         {/* Center Section: Search Bar */}
-        <div className="flex-1 flex justify-center px-8">
+        <div className="flex-1 pl-96 flex justify-end px-8">
           <div className="relative w-full max-w-md">
             <input
               className="w-full rounded-full border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
@@ -55,11 +48,12 @@ export default function Topbar() {
             <Bell size={18} />
           </button>
           <button
-            onClick={handleGeneratePdf}
-            className="p-2 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
+            onClick={onGeneratePdf}
+            disabled={isPdfLoading || loading}
+            className="p-2 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Generate PDF"
           >
-            <FileDown size={18} />
+            {isPdfLoading ? <Loader2 size={18} className="animate-spin" /> : <FileDown size={18} />}
           </button>
           
           <div className="flex items-center gap-2 pl-2">
