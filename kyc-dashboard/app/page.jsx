@@ -12,13 +12,13 @@ import { fetchDashboard } from "@/lib/api";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
-
 export default function Page() {
   // --- Centralized State ---
   const [range, setRange] = useState("today");
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
-  
+  const [singleDate, setSingleDate] = useState("");
+
   const [view, setView] = useState("individual");
   const [solicitedType, setSolicitedType] = useState("solicited");
 
@@ -34,10 +34,10 @@ export default function Page() {
   // --- Centralized Data Fetching ---
   useEffect(() => {
     setLoading(true);
-    fetchDashboard({ range, from: customFrom, to: customTo, view, type: solicitedType })
+    fetchDashboard({ range, from: customFrom, to: customTo, view, type: solicitedType, date: singleDate })
       .then(setData)
       .finally(() => setLoading(false));
-  }, [range, customFrom, customTo, view, solicitedType]);
+  }, [range, customFrom, customTo, view, solicitedType, singleDate]); // Add singleDate here
 
   // --- PDF Generation Logic ---
   const handleGeneratePdf = async () => {
@@ -67,8 +67,10 @@ export default function Page() {
     yPos = await addImageToPdf(kycDashboardRef.current, yPos);
     yPos = await addImageToPdf(categoriesCardRef.current, yPos);
     await addImageToPdf(panStatsRef.current, yPos);
-    
-    pdf.save(`kyc-dashboard-report-${new Date().toISOString().split('T')[0]}.pdf`);
+
+    pdf.save(
+      `kyc-dashboard-report-${new Date().toISOString().split("T")[0]}.pdf`
+    );
     setIsPdfLoading(false);
   };
 
@@ -83,7 +85,11 @@ export default function Page() {
         </aside>
 
         <main className="flex-1 flex flex-col min-w-0">
-          <Topbar onGeneratePdf={handleGeneratePdf} isPdfLoading={isPdfLoading} loading={loading} />
+          <Topbar
+            onGeneratePdf={handleGeneratePdf}
+            isPdfLoading={isPdfLoading}
+            loading={loading}
+          />
 
           <div className="p-4 md:p-6 space-y-8">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -94,33 +100,52 @@ export default function Page() {
                 setCustomFrom={setCustomFrom}
                 customTo={customTo}
                 setCustomTo={setCustomTo}
+                singleDate={singleDate}
+                setSingleDate={setSingleDate}
               />
             </div>
 
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-              <section ref={kycDashboardRef} className="xl:col-span-2 space-y-6">
+              <section
+                ref={kycDashboardRef}
+                className="xl:col-span-2 space-y-6"
+              >
                 <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm p-6">
-                  {loading ? <SkeletonChart /> : <KycDashboard data={data} view={view} setView={setView} />}
+                  {loading ? (
+                    <SkeletonChart />
+                  ) : (
+                    <KycDashboard data={data} view={view} setView={setView} />
+                  )}
                 </div>
               </section>
 
               <aside className="space-y-6">
-                <div ref={categoriesCardRef} className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm p-6">
+                <div
+                  ref={categoriesCardRef}
+                  className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm p-6"
+                >
                   {loading ? (
                     <SkeletonCard />
                   ) : (
-                    <CategoriesCard categories={data?.categories} view={view} setView={setView} />
+                    <CategoriesCard
+                      categories={data?.categories}
+                      view={view}
+                      setView={setView}
+                    />
                   )}
                 </div>
 
-                <div ref={panStatsRef} className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm p-6">
+                <div
+                  ref={panStatsRef}
+                  className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm p-6"
+                >
                   {loading ? (
                     <div className="space-y-6">
                       <SkeletonChart />
                     </div>
                   ) : (
-                    <PanStats 
-                      panData={data?.panData} 
+                    <PanStats
+                      panData={data?.panData}
                       donutData={data?.donut}
                       totalKycs={data?.totalKycs}
                       solicitedType={solicitedType}

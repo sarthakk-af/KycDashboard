@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import { useTheme } from "next-themes";
 import {
   ArrowUpRight,
   ArrowDownRight,
@@ -25,11 +24,17 @@ import {
 } from "recharts";
 
 export default function KycDashboard({ data, view, setView }) {
-  const { theme } = useTheme();
   const [viewMode, setViewMode] = useState("chart");
-  const [timeFilter, setTimeFilter] = useState("today");
 
-  const { totalKycs, kpi, bar, statuses } = data;
+  const { 
+    totalKycs = 0, 
+    kpi = { 
+      newKyc: { count: 0, changePct: 0, breakup: { myKRA: 0, interop: 0 } }, 
+      modifiedKyc: { count: 0, changePct: 0, breakup: { myKRA: 0, interop: 0 } } 
+    }, 
+    bar = [], 
+    statuses = [] 
+  } = data || {};
 
   const Badge = ({ positive, value }) => (
     <span
@@ -58,14 +63,18 @@ export default function KycDashboard({ data, view, setView }) {
           <Badge positive={positive} value={Math.abs(change)} />
         </div>
         <div className="mt-1 text-3xl font-bold">{count.toLocaleString()}</div>
-        <div className="mt-1 text-xs text-gray-500 dark:text-gray-400 flex gap-4">
-          <span>
-            <strong>{breakup.myKRA}</strong> My KRA
-          </span>
-          <span>
-            <strong>{breakup.interop}</strong> Interop
-          </span>
-        </div>
+        {/* --- MODIFICATION START: This block will only render if 'breakup' data is provided --- */}
+        {breakup && (
+          <div className="mt-1 text-xs text-gray-500 dark:text-gray-400 flex gap-4">
+            <span>
+              <strong>{breakup.myKRA}</strong> My KRA
+            </span>
+            <span>
+              <strong>{breakup.interop}</strong> Interop
+            </span>
+          </div>
+        )}
+        {/* --- MODIFICATION END --- */}
       </div>
     </div>
   );
@@ -73,9 +82,9 @@ export default function KycDashboard({ data, view, setView }) {
   const ICONS = {
     "KYC Initiated": { icon: ClipboardList, color: "#2F63F6" },
     "Under Process": { icon: Loader2, color: "#FF9800" },
-    Registered: { icon: CheckCircle2, color: "#00BCD4" },
-    Validated: { icon: ShieldCheck, color: "#4CAF50" },
-    Hold: { icon: PauseCircle, color: "#03A9F4" },
+    "Registered": { icon: CheckCircle2, color: "#00BCD4" },
+    "Validated": { icon: ShieldCheck, color: "#4CAF50" },
+    "Hold": { icon: PauseCircle, color: "#03A9F4" },
     "Docs Pending": { icon: FileWarning, color: "#F44336" },
   };
 
@@ -96,7 +105,7 @@ export default function KycDashboard({ data, view, setView }) {
     </div>
   );
 
-  const BarComparison = ({ data }) => (
+  const BarComparison = ({ chartData }) => (
      <div className="rounded-[20px] border border-[#E7E7E7] dark:border-neutral-700 bg-white dark:bg-neutral-800 shadow-md p-6">
       <div className="flex justify-between items-center mb-6">
         <div className="flex flex-1 justify-center gap-6 text-sm">
@@ -131,10 +140,8 @@ export default function KycDashboard({ data, view, setView }) {
       </div>
 
       {viewMode === "chart" ? (
-        // --- MODIFICATION START ---
-        // Removed the fixed-height wrapper div and applied a height directly to the ResponsiveContainer
         <ResponsiveContainer width="100%" height={350}>
-          <BarChart data={data} barGap={0}>
+          <BarChart data={chartData} barGap={0}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis dataKey="name" />
             <YAxis />
@@ -155,10 +162,9 @@ export default function KycDashboard({ data, view, setView }) {
             />
           </BarChart>
         </ResponsiveContainer>
-        // --- MODIFICATION END ---
       ) : (
         <div className="divide-y text-sm">
-          {data.map((row) => (
+          {chartData.map((row) => (
             <div key={row.name} className="flex justify-between py-3">
               <span>{row.name}</span>
               <span className="font-semibold text-[#2F63F6]">{row.individual}</span>
@@ -188,8 +194,8 @@ export default function KycDashboard({ data, view, setView }) {
             count={kpi.newKyc.count}
             change={kpi.newKyc.changePct}
             positive={kpi.newKyc.changePct >= 0}
-            breakup={kpi.newKyc.breakup}
             Icon={CheckCircle2}
+            // --- MODIFICATION: The 'breakup' prop has been removed here ---
           />
           <KpiMini
             title="Modified KYC"
@@ -202,33 +208,9 @@ export default function KycDashboard({ data, view, setView }) {
         </div>
       </div>
 
-      <BarComparison data={bar} />
+      <BarComparison chartData={bar} />
 
-      {/* Responsive Filters */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-        <div className="bg-gray-100 dark:bg-neutral-700 rounded-full p-1 flex">
-          <button
-            onClick={() => setTimeFilter("today")}
-            className={`px-4 py-2 rounded-full text-sm font-medium capitalize transition ${
-              timeFilter === "today"
-                ? "bg-white dark:bg-neutral-900 shadow-sm"
-                : ""
-            }`}
-          >
-            Today
-          </button>
-          <button
-            onClick={() => setTimeFilter("yesterday")}
-            className={`px-4 py-2 rounded-full text-sm font-medium capitalize transition ${
-              timeFilter === "yesterday"
-                ? "bg-white dark:bg-neutral-900 shadow-sm"
-                : ""
-            }`}
-          >
-            Yesterday
-          </button>
-        </div>
-
         <div className="flex bg-gray-100 dark:bg-neutral-700 rounded-full p-1">
           <button
             onClick={() => setView("individual")}
@@ -252,7 +234,7 @@ export default function KycDashboard({ data, view, setView }) {
           </button>
         </div>
       </div>
-
+      
       <StatusCards items={statuses} />
     </div>
   );
