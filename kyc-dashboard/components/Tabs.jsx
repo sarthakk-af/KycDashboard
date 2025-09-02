@@ -25,35 +25,36 @@ export default function HeaderTabs({
   const maxDate = today.toISOString().split("T")[0];
   const minDate = new Date(today.getFullYear(), 0, 1).toISOString().split("T")[0];
 
-  // --- MODIFICATION: Create a ref for the date input ---
   const dateInputRef = useRef(null);
 
   const handleDateContainerClick = () => {
-    // Programmatically open the date picker
     dateInputRef.current?.showPicker();
   };
 
   return (
-    <div className="flex items-start justify-between w-full mb-6">
+    // MODIFICATION: Flex column on mobile, row on medium screens and up
+    <div className="flex flex-col md:flex-row items-start justify-between w-full gap-4">
       {/* Title */}
       <div>
-        <h2 className="text-5xl font-semibold text-gray-900 dark:text-white">
+        {/* MODIFICATION: Made title smaller on mobile */}
+        <h2 className="text-3xl md:text-5xl font-semibold text-gray-900 dark:text-white">
           Axis MF
         </h2>
-        <p className="text-gray-400 dark:text-gray-500 text-xl">
+        <p className="text-gray-400 dark:text-gray-500 text-lg md:text-xl">
           Home {" > "} Dashboard
         </p>
       </div>
 
-      {/* Buttons + Date */}
-      <div className="flex items-center gap-3">
+      {/* MODIFICATION: Flex column on mobile, row on medium screens up */}
+      <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 w-full md:w-auto">
         {/* Range buttons */}
-        <div className="flex items-center gap-2 p-1 rounded-full border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900">
+        <div className="flex items-center justify-center gap-1 p-1 rounded-full border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900">
           {["today", "month", "custom"].map((r) => (
             <button
               key={r}
               onClick={() => setRange(r)}
-              className={`px-5 py-2 rounded-full text-sm font-medium transition capitalize ${
+              // MODIFICATION: Adjusted padding for smaller buttons
+              className={`px-3 py-2 rounded-full text-sm font-medium transition capitalize flex-1 ${
                 range === r
                   ? "bg-blue-600 text-white"
                   : "text-gray-600 dark:text-gray-300"
@@ -64,10 +65,9 @@ export default function HeaderTabs({
           ))}
         </div>
 
-        {/* --- MODIFICATION: Using an onClick handler to trigger the picker --- */}
         <div
           onClick={handleDateContainerClick}
-          className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 cursor-pointer"
+          className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 cursor-pointer"
         >
           <Calendar size={16} className="text-gray-500" />
           <span className={`text-sm ${singleDate && range === 'date' ? "text-gray-800 dark:text-gray-200" : "text-gray-400"}`}>
@@ -89,31 +89,6 @@ export default function HeaderTabs({
             max={maxDate}
           />
         </div>
-
-        {/* Conditionally render date range picker for "Custom" */}
-        {range === "custom" && (
-          <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900">
-            <input
-              type="date"
-              value={customFrom}
-              onChange={(e) => setCustomFrom(e.target.value)}
-              className="outline-none bg-transparent text-gray-700 dark:text-gray-300"
-              aria-label="From Date"
-              min={minDate}
-              max={maxDate}
-            />
-            <span className="text-gray-400">-</span>
-            <input
-              type="date"
-              value={customTo}
-              onChange={(e) => setCustomTo(e.target.value)}
-              className="outline-none bg-transparent text-gray-700 dark:text-gray-300"
-              aria-label="To Date"
-              min={minDate}
-              max={maxDate}
-            />
-          </div>
-        )}
       </div>
     </div>
   );

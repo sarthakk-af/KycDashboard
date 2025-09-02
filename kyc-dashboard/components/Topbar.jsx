@@ -15,14 +15,15 @@ export default function Topbar({ onGeneratePdf, isPdfLoading, loading }) {
 
   return (
     <header className="sticky top-0 z-20 w-full bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800">
-      <div className="w-full px-4 md:px-6 py-3 flex items-center justify-between">
+      <div className="w-full px-4 md:px-6 py-3 flex items-center justify-between gap-4">
         {/* Left Section: Title */}
         <div className="flex items-center">
-          <h1 className="text-2xl font-bold">Dashboard</h1>
+          {/* MODIFICATION: Made title smaller for mobile */}
+          <h1 className="text-xl md:text-2xl font-bold">Dashboard</h1>
         </div>
 
-        {/* Center Section: Search Bar */}
-        <div className="flex-1 pl-96 flex justify-end px-8">
+        {/* Center Section: Search Bar - MODIFICATION: Hidden on screens smaller than large */}
+        <div className="hidden lg:flex flex-1 justify-center px-8">
           <div className="relative w-full max-w-md">
             <input
               className="w-full rounded-full border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
@@ -36,7 +37,7 @@ export default function Topbar({ onGeneratePdf, isPdfLoading, loading }) {
         </div>
 
         {/* Right Section: Actions & User Profile */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
           <button
             className="p-2 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
@@ -59,10 +60,11 @@ export default function Topbar({ onGeneratePdf, isPdfLoading, loading }) {
           <div className="flex items-center gap-2 pl-2">
             <img
               src="https://placehold.co/40x40/E2E8F0/4A5568?text=SG"
-              className="h-10 w-10 rounded-full"
+              className="h-8 w-8 md:h-10 md:w-10 rounded-full"
               alt="avatar"
             />
-            <div className="text-sm">
+            {/* MODIFICATION: Hide text on smaller screens */}
+            <div className="hidden md:block text-sm">
               <div className="font-medium">Sarthak Gupta</div>
               <div className="text-xs text-gray-500">Aug 15, 2025</div>
             </div>

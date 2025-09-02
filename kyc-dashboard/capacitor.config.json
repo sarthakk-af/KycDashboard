@@ -1,0 +1,9 @@
+{
+  "appId": "com.example.app",
+  "appName": "kyc-dashboard",
+  "webDir": "out",
+  "server": {
+    "androidScheme": "https",
+    "hostname": "localhost"
+  }
+}

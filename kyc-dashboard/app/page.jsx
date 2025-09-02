@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import Topbar from "@/components/Topbar";
 import CategoriesCard from "@/components/CategoriesCard";
@@ -10,7 +10,7 @@ import KycDashboard from "@/components/KycDashboard";
 import { SkeletonCard, SkeletonChart } from "@/components/Skeletons";
 import { fetchDashboard } from "@/lib/api";
 import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
+import autoTable from 'jspdf-autotable'; 
 
 export default function Page() {
   // --- Centralized State ---
@@ -26,59 +26,89 @@ export default function Page() {
   const [loading, setLoading] = useState(true);
   const [isPdfLoading, setIsPdfLoading] = useState(false);
 
-  // --- Refs for PDF Generation ---
-  const kycDashboardRef = useRef(null);
-  const categoriesCardRef = useRef(null);
-  const panStatsRef = useRef(null);
-
-  // --- Centralized Data Fetching ---
+  // --- Data Fetching ---
   useEffect(() => {
     setLoading(true);
     fetchDashboard({ range, from: customFrom, to: customTo, view, type: solicitedType, date: singleDate })
       .then(setData)
       .finally(() => setLoading(false));
-  }, [range, customFrom, customTo, view, solicitedType, singleDate]); // Add singleDate here
+  }, [range, customFrom, customTo, view, solicitedType, singleDate]);
 
   // --- PDF Generation Logic ---
-  const handleGeneratePdf = async () => {
+  const handleGeneratePdf = () => {
+    if (!data) return;
     setIsPdfLoading(true);
-    const pdf = new jsPDF("p", "mm", "a4");
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
-    const margin = 10;
-    const contentWidth = pageWidth - margin * 2;
 
-    pdf.text("KYC Dashboard Report", margin, margin + 5);
-    let yPos = margin + 15;
+    const doc = new jsPDF();
+    const pageTitle = "KYC Dashboard Report";
+    const reportDate = `Date: ${new Date().toLocaleDateString()}`;
+    const selectedRange = `Range: ${range === 'month' ? 'This Month' : range}`;
 
-    const addImageToPdf = async (element, y) => {
-      if (!element) return y;
-      const canvas = await html2canvas(element, { scale: 2 });
-      const imgData = canvas.toDataURL("image/png");
-      const imgHeight = (canvas.height * contentWidth) / canvas.width;
-      if (y + imgHeight > pageHeight - margin) {
-        pdf.addPage();
-        y = margin;
-      }
-      pdf.addImage(imgData, "PNG", margin, y, contentWidth, imgHeight);
-      return y + imgHeight + 10;
-    };
+    // --- Header ---
+    doc.setFontSize(20);
+    doc.text(pageTitle, 15, 20);
+    doc.setFontSize(10);
+    doc.text(reportDate, 15, 28);
+    doc.text(selectedRange, 15, 34);
 
-    yPos = await addImageToPdf(kycDashboardRef.current, yPos);
-    yPos = await addImageToPdf(categoriesCardRef.current, yPos);
-    await addImageToPdf(panStatsRef.current, yPos);
+    // --- Summary Table ---
+    // MODIFICATION 2: Call autoTable as a function, passing `doc` as the first argument
+    autoTable(doc, {
+        startY: 45,
+        head: [['Metric', 'Value']],
+        body: [
+            ['Total KYCs', data.totalKycs.toLocaleString()],
+            ['New KYC', data.kpi.newKyc.count.toLocaleString()],
+            ['Modified KYC', data.kpi.modifiedKyc.count.toLocaleString()],
+        ],
+        theme: 'striped',
+        headStyles: { fillColor: [22, 160, 133] },
+    });
 
-    pdf.save(
-      `kyc-dashboard-report-${new Date().toISOString().split("T")[0]}.pdf`
-    );
+    // --- KYC Statuses Table ---
+    autoTable(doc, {
+        // MODIFICATION 3: Use `doc.lastAutoTable.finalY` to correctly position the next table
+        startY: (doc).lastAutoTable.finalY + 15,
+        head: [['KYC Status', 'Count']],
+        body: data.statuses.map(status => [status.label, status.count.toLocaleString()]),
+        theme: 'grid',
+        headStyles: { fillColor: [41, 128, 185] },
+    });
+
+    // --- PAN Data Table ---
+    autoTable(doc, {
+        startY: (doc).lastAutoTable.finalY + 15,
+        head: [['PAN Data Point', 'Value']],
+        body: [
+            ['PANs Solicited (With Image)', data.panData.panSolicited.withImage.toLocaleString()],
+            ['PANs Solicited (Without Image)', data.panData.panSolicited.withoutImage.toLocaleString()],
+            ['PANs Solicited (KFin KRA)', data.panData.panSolicited.kfinKRA.toLocaleString()],
+            ['Data Received (With Image)', data.panData.dataReceived.withImage.toLocaleString()],
+            ['Data Received (Without Image)', data.panData.dataReceived.withoutImage.toLocaleString()],
+            ['Data Received (KFin KRA)', data.panData.dataReceived.kfinKRA.toLocaleString()],
+        ],
+        theme: 'striped',
+        headStyles: { fillColor: [243, 156, 18] },
+    });
+    
+    // --- Footer ---
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.text(`Page ${i} of ${pageCount}`, doc.internal.pageSize.width - 25, doc.internal.pageSize.height - 10);
+    }
+    
+    doc.save(`kyc-report-${new Date().toISOString().split("T")[0]}.pdf`);
     setIsPdfLoading(false);
   };
 
+
+  // --- The rest of your component remains the same ---
   return (
     <div className="min-h-screen bg-[#F7F8FA] dark:bg-black">
       <div className="flex">
         <aside
-          // --- MODIFICATION: Changed width to w-44 to match the Sidebar component ---
           className={`hidden md:block sticky top-0 h-screen transition-all duration-300 w-44`}
         >
           <Sidebar />
@@ -91,39 +121,31 @@ export default function Page() {
             loading={loading}
           />
 
-          <div className="p-4 md:p-6 space-y-8">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-              <Tabs
-                range={range}
-                setRange={setRange}
-                customFrom={customFrom}
-                setCustomFrom={setCustomFrom}
-                customTo={customTo}
-                setCustomTo={setCustomTo}
-                singleDate={singleDate}
-                setSingleDate={setSingleDate}
-              />
-            </div>
+          <div className="p-4 md:p-6 space-y-6">
+            <Tabs
+              range={range}
+              setRange={setRange}
+              customFrom={customFrom}
+              setCustomFrom={setCustomFrom}
+              customTo={customTo}
+              setCustomTo={setCustomTo}
+              singleDate={singleDate}
+              setSingleDate={setSingleDate}
+            />
 
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <section
-                ref={kycDashboardRef}
-                className="xl:col-span-2 space-y-6"
+                className="lg:col-span-2 space-y-6"
               >
-                <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm p-6">
-                  {loading ? (
-                    <SkeletonChart />
-                  ) : (
-                    <KycDashboard data={data} view={view} setView={setView} />
-                  )}
-                </div>
+                {loading ? (
+                  <SkeletonChart />
+                ) : (
+                  <KycDashboard data={data} view={view} setView={setView} />
+                )}
               </section>
 
               <aside className="space-y-6">
-                <div
-                  ref={categoriesCardRef}
-                  className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm p-6"
-                >
+                <div>
                   {loading ? (
                     <SkeletonCard />
                   ) : (
@@ -135,14 +157,9 @@ export default function Page() {
                   )}
                 </div>
 
-                <div
-                  ref={panStatsRef}
-                  className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm p-6"
-                >
+                <div>
                   {loading ? (
-                    <div className="space-y-6">
-                      <SkeletonChart />
-                    </div>
+                    <SkeletonChart />
                   ) : (
                     <PanStats
                       panData={data?.panData}
