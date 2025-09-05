@@ -1,5 +1,5 @@
 "use client";
-import { useRef } from "react"; // Import useRef
+import { useRef } from "react";
 import { Calendar } from "lucide-react";
 
 // Helper function to format the date string
@@ -32,11 +32,9 @@ export default function HeaderTabs({
   };
 
   return (
-    // MODIFICATION: Flex column on mobile, row on medium screens and up
     <div className="flex flex-col md:flex-row items-start justify-between w-full gap-4">
       {/* Title */}
       <div>
-        {/* MODIFICATION: Made title smaller on mobile */}
         <h2 className="text-3xl md:text-5xl font-semibold text-gray-900 dark:text-white">
           Axis MF
         </h2>
@@ -45,7 +43,7 @@ export default function HeaderTabs({
         </p>
       </div>
 
-      {/* MODIFICATION: Flex column on mobile, row on medium screens up */}
+      {/* Buttons + Date */}
       <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 w-full md:w-auto">
         {/* Range buttons */}
         <div className="flex items-center justify-center gap-1 p-1 rounded-full border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900">
@@ -53,7 +51,6 @@ export default function HeaderTabs({
             <button
               key={r}
               onClick={() => setRange(r)}
-              // MODIFICATION: Adjusted padding for smaller buttons
               className={`px-3 py-2 rounded-full text-sm font-medium transition capitalize flex-1 ${
                 range === r
                   ? "bg-blue-600 text-white"
@@ -65,6 +62,7 @@ export default function HeaderTabs({
           ))}
         </div>
 
+        {/* Single Date Picker */}
         <div
           onClick={handleDateContainerClick}
           className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 cursor-pointer"
@@ -74,14 +72,13 @@ export default function HeaderTabs({
             {formatDate(singleDate)}
           </span>
           <input
-            ref={dateInputRef} // Assign the ref
+            ref={dateInputRef}
             type="date"
             value={singleDate}
             onChange={(e) => {
               setSingleDate(e.target.value);
               setRange("date");
             }}
-            // Hide the input completely from view and interaction
             className="w-0 h-0 p-0 m-0 border-0"
             style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}
             aria-label="Select Date"
@@ -89,6 +86,31 @@ export default function HeaderTabs({
             max={maxDate}
           />
         </div>
+
+        {/* MODIFICATION: Added the missing custom date range picker back in */}
+        {range === "custom" && (
+          <div className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900">
+            <input
+              type="date"
+              value={customFrom}
+              onChange={(e) => setCustomFrom(e.target.value)}
+              className="outline-none bg-transparent text-gray-700 dark:text-gray-300"
+              aria-label="From Date"
+              min={minDate}
+              max={maxDate}
+            />
+            <span className="text-gray-400">-</span>
+            <input
+              type="date"
+              value={customTo}
+              onChange={(e) => setCustomTo(e.target.value)}
+              className="outline-none bg-transparent text-gray-700 dark:text-gray-300"
+              aria-label="To Date"
+              min={minDate}
+              max={maxDate}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
